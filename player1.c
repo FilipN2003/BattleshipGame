@@ -84,14 +84,13 @@ int main() {
 
     int brojPreostalih = 5;
     char potez[5], odgovor[5];
-    char pogodak = 'n'; // Oznacava da li smo pogodjeni ili ne u prethodnom potezu / U prvom koraku n jer nema smisla da bude 0 ili 1
+    char pogodak = 'n'; // Signaling if the player was hit in the last move or not. First turn reads 'n'.
     int a, b, x, y;
 
     while (brojPreostalih > 0) {
         // Unos poteza
         printf("Unesite potez (format: x y):\n");
-        fflush(stdin);  // Da ne ostane nista na standardnom ulazu pre fgets(pokusao sam ovime da resim problem)
-        //fgets(potez, sizeof(potez), stdin);
+        fflush(stdin);
         scanf("%d %d", &a, &b);
         sprintf(potez, "%d %d%c", a, b, pogodak); 
 
@@ -101,12 +100,12 @@ int main() {
         read(read_fd, odgovor, sizeof(odgovor));
         printf("Protivnik kaze: %s\n", odgovor);
 
-        if (odgovor[3] == 'K') { // Protivnik izgubio
+        if (odgovor[3] == 'K') { // Opponent lost
             printf("Cestitamo, pobedili ste!\n");
             break;
         }
 
-        //Osvezavamo nasu mapu
+        //Refreshing our map
         x = odgovor[0] - '0';
         y = odgovor[2] - '0';
         if (mapa[x][y] == '1') {
@@ -118,7 +117,7 @@ int main() {
             pogodak = '0';
         }
 
-        // Osvezavamo protivnicku mapu
+        // Refreshing opponents map
         if(odgovor[3] == '0'){
             protivnickaMapa[a][b] = '0';
         } else if(odgovor[3] == '1'){
