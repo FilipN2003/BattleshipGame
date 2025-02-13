@@ -1,0 +1,140 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <errno.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <sys/stat.h>
+#include <string.h>
+#include <stdbool.h>
+
+#define check_error(cond, msg)\
+do{\
+    if(!(cond)){\
+        perror(msg);\
+        fprintf(stderr, "%s: %d\n", __FILE__, __LINE__);\
+        exit(EXIT_FAILURE);\
+        }\
+}while(0)
+
+    char mapa[5][5];
+    char protivnickaMapa[5][5];
+
+void unesiBrodove(){
+    printf("Unesite pozicije 5 brodova: \n");
+    int k, l;
+    for(int i = 0; i < 5; i++){
+        scanf("%d %d", &k, &l);
+        mapa[k][l] = '1';
+    }
+}
+
+void inicijalizujMapu(){
+    for(int i = 0; i < 5; i++){
+        for(int j = 0; j < 5; j++){
+            mapa[i][j] = '0';
+        }
+    }
+}
+
+void inicijalizujProtivnickuMapu(){
+    for(int i = 0; i < 5; i++){
+        for(int j = 0; j < 5; j++){
+            protivnickaMapa[i][j] = '*';
+        }
+    }
+}
+
+void stampajSvojuMapu(){
+    for(int i = 0; i < 5; i++){
+        for(int j = 0; j < 5; j++){
+            printf("%c ", mapa[i][j]);
+        }
+        printf("\n");
+    }
+    printf("\n");
+}
+
+void stampajProtivnickuMapu(){
+    for(int i = 0; i < 5; i++){
+        for(int j = 0; j < 5; j++){
+            printf("%c ", protivnickaMapa[i][j]);
+        }
+        printf("\n");
+    }
+    printf("\n");
+}
+
+int main() {
+    // Otvaramo FIFO fajlove koje je prvi igrac napravio
+    int read_fd = open("fifo1", O_RDONLY);
+    check_error(read_fd != -1, "open fifo2 failed");
+
+    int write_fd = open("fifo2", O_WRONLY);
+    check_error(write_fd != -1, "open fifo1 failed");
+
+    // Inicijalizujemo mape
+    inicijalizujMapu();
+    unesiBrodove();
+    stampajSvojuMapu();
+
+    inicijalizujProtivnickuMapu();
+    stampajProtivnickuMapu();
+
+    int brojPreostalih = 5;
+    char potez[5], odgovor[5];
+    char pogodak = 'n'; 
+    int a, b, x, y;
+
+    while (brojPreostalih > 0) {
+        // Citamo protivnicki potez
+        read(read_fd, odgovor, sizeof(odgovor));
+        printf("Protivnik kaze: %s\n", odgovor);
+
+        if (odgovor[3] == 'K') { // Protivnik izgubio
+            printf("Cestitamo, pobedili ste!\n");
+            break;
+        }
+
+        x = odgovor[0] - '0';
+        y = odgovor[2] - '0';
+        if (mapa[x][y] == '1') {
+            mapa[x][y] = '!';
+            pogodak = '1';
+            brojPreostalih--;
+        } else {
+            mapa[x][y] = 'X';
+            pogodak = '0';
+        }
+
+        // Promena protivnicke mape
+        if(odgovor[3] == '0'){
+            protivnickaMapa[a][b] = '0';
+        } else if(odgovor[3] == '1'){
+            protivnickaMapa[a][b] = '1';
+        }
+
+        stampajSvojuMapu();
+        stampajProtivnickuMapu();
+
+        if (brojPreostalih == 0) {
+            snprintf(odgovor, sizeof(odgovor), "%d %dK", x, y);
+            write(write_fd, odgovor, strlen(odgovor) + 1);
+            printf("Izgubili ste!\n");
+            break;
+        }
+
+        // Unos poteza
+        printf("Unesite potez (format: x y):\n");
+        fflush(stdin);  // Cistimo ulaz zbog fgets
+        //fgets(potez, sizeof(potez), stdin);
+        scanf("%d %d", &a, &b);
+        sprintf(potez, "%d %d%c", a, b, pogodak);
+
+        write(write_fd, potez, strlen(potez) + 1);
+    }
+
+    close(write_fd);
+    close(read_fd);
+
+    return 0;
+}
