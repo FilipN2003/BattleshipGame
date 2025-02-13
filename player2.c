@@ -65,14 +65,14 @@ void stampajProtivnickuMapu(){
 }
 
 int main() {
-    // Otvaramo FIFO fajlove koje je prvi igrac napravio
+    // Opening FIFO files that were made by player 1
     int read_fd = open("fifo1", O_RDONLY);
     check_error(read_fd != -1, "open fifo2 failed");
 
     int write_fd = open("fifo2", O_WRONLY);
     check_error(write_fd != -1, "open fifo1 failed");
 
-    // Inicijalizujemo mape
+    // Initializing maps
     inicijalizujMapu();
     unesiBrodove();
     stampajSvojuMapu();
@@ -86,11 +86,11 @@ int main() {
     int a, b, x, y;
 
     while (brojPreostalih > 0) {
-        // Citamo protivnicki potez
+        // Waiting for opponents move
         read(read_fd, odgovor, sizeof(odgovor));
         printf("Protivnik kaze: %s\n", odgovor);
 
-        if (odgovor[3] == 'K') { // Protivnik izgubio
+        if (odgovor[3] == 'K') { // Opponent lost
             printf("Cestitamo, pobedili ste!\n");
             break;
         }
@@ -106,7 +106,7 @@ int main() {
             pogodak = '0';
         }
 
-        // Promena protivnicke mape
+        // Refreshing opponents map
         if(odgovor[3] == '0'){
             protivnickaMapa[a][b] = '0';
         } else if(odgovor[3] == '1'){
@@ -123,7 +123,7 @@ int main() {
             break;
         }
 
-        // Unos poteza
+        // Move input
         printf("Unesite potez (format: x y):\n");
         fflush(stdin);  // Cistimo ulaz zbog fgets
         //fgets(potez, sizeof(potez), stdin);
