@@ -67,7 +67,7 @@ void stampajProtivnickuMapu(){
 }
 
 int main() {
-    // Prvi igrac pravi fifo fajlove
+    // First player makes fifo files
     check_error(mkfifo("fifo1", 0600) != -1 || errno == EEXIST, "mkfifo fifo1 failed");
     check_error(mkfifo("fifo2", 0600) != -1 || errno == EEXIST, "mkfifo fifo2 failed");
     int write_fd = open("fifo1", O_WRONLY);
@@ -75,7 +75,7 @@ int main() {
     int read_fd = open("fifo2", O_RDONLY);
     check_error(read_fd != -1, "open fifo2 failed");
 
-    // Inicijalizujemo mape
+    // Initializing maps
     inicijalizujMapu();
     unesiBrodove();
     stampajSvojuMapu();
@@ -88,7 +88,7 @@ int main() {
     int a, b, x, y;
 
     while (brojPreostalih > 0) {
-        // Unos poteza
+        // Move input
         printf("Unesite potez (format: x y):\n");
         fflush(stdin);
         scanf("%d %d", &a, &b);
@@ -96,7 +96,7 @@ int main() {
 
         write(write_fd, potez, strlen(potez) + 1);
 
-        // Citamo protivnikov odgovor
+        // Reading opponents move
         read(read_fd, odgovor, sizeof(odgovor));
         printf("Protivnik kaze: %s\n", odgovor);
 
